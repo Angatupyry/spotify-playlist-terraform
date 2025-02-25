@@ -14,7 +14,7 @@ services:
       - server 
       - --gh-app-key-file=/etc/atlantis/github-app-key.pem
       - --gh-app-id=1157716
-      - --repo-allowlist="github.com/angatupyry/spotify-playlist-terraform"
+      - --repo-allowlist=github.com/angatupyry/spotify-playlist-terraform
       - --write-git-creds
 
     restart: unless-stopped
