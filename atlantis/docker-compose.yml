@@ -4,6 +4,8 @@ services:
   atlantis:
     build: .
     container_name: atlantis
+    networks:
+      - atlantis_default
     ports:
       - "4141:4141"
     volumes: 
@@ -16,6 +18,18 @@ services:
       - --gh-app-id=1157716
       - --repo-allowlist=github.com/angatupyry/spotify-playlist-terraform
       - --write-git-creds
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    
+    spotify-auth-proxy:
+      image: ghcr.io/conradludgate/spotify-auth-proxy
+      container_name: spotify-auth-proxy
+      ports:
+        - "27228:27228"
+      env_file:
+        - .env
+      restart: unless-stopped
+      networks:
+      - atlantis_default
+
+networks:
+  atlantis_default:
+    driver: bridge
