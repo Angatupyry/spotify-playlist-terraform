@@ -9,7 +9,6 @@ terraform {
 
 provider "spotify" {
   api_key = var.spotify_api_key
-  api_url = "http://spotify-auth-proxy:27228"
 }
 
 data "spotify_search_track" "by_artist" {
