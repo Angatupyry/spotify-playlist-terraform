@@ -1,1 +1,1 @@
-spotify_api_key = "AD2pKxJHi4XqGFKMLBrxIz1zVD1aamaprG80pB91EA1Gv0fbuQdePBxYFZj9Wo4q"
+spotify_api_key = "mkkgIpzDYHJiGEVSLIJeO40yjDjIFqdzP6Ig99gkSVldTbJhb9wdOU9u-lukF87P"
