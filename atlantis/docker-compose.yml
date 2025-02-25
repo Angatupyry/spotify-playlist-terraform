@@ -19,15 +19,13 @@ services:
       - --repo-allowlist=github.com/angatupyry/spotify-playlist-terraform
       - --write-git-creds
     
-    spotify-auth-proxy:
-      image: ghcr.io/conradludgate/spotify-auth-proxy
-      container_name: spotify-auth-proxy
-      ports:
-        - "27228:27228"
-      env_file:
-        - .env
-      restart: unless-stopped
-      networks:
+  spotify-auth-proxy:
+    image: ghcr.io/conradludgate/spotify-auth-proxy
+    container_name: spotify-auth-proxy
+    ports:
+      - "27228:27228"
+    restart: unless-stopped
+    networks:
       - atlantis_default
 
 networks:
