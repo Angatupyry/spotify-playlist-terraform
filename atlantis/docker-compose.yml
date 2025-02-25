@@ -24,6 +24,8 @@ services:
     container_name: spotify-auth-proxy
     ports:
       - "27228:27228"
+    env_file:
+      - .env  
     restart: unless-stopped
     networks:
       - atlantis_default
