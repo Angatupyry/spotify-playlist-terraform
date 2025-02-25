@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  atlantis:
+    build: .
+    container_name: atlantis
+    ports:
+      - "4141:4141"
+    volumes: 
+      - /etc/atlantis/github-app-key.pem:/etc/atlantis/github-app-key.pem
+      - ./terraform:/terraform
+      - ./atlantis.yaml:/atlantis.yaml
+    command: 
+      - server 
+      - --gh-app-key-file=/etc/atlantis/github-app-key.pem
+      - --gh-app-id=1157716
+      - --repo-allowlist="github.com/angatupyry/spotify-playlist-terraform"
+      - --write-git-creds
+
+    restart: unless-stopped
