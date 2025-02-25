@@ -17,8 +17,18 @@ data "spotify_search_track" "by_artist" {
   #  name  = "Early Morning Breeze"
 }
 
+data "spotify_search_track" "rock_song" {
+  artist = "Queen"
+  name   = "Bohemian Rhapsody"
+}
+
+data "spotify_search_track" "pop_song" {
+  artist = "Taylor Swift"
+  name   = "Shake It Off"
+}
+
 resource "spotify_playlist" "playlist" {
-  name        = "Terraform Summer Playlist"
+  name        = "My Custom Terraform Playlist"
   description = "This playlist was created by Terraform"
   public      = true
 
@@ -26,5 +36,9 @@ resource "spotify_playlist" "playlist" {
     data.spotify_search_track.by_artist.tracks[0].id,
     data.spotify_search_track.by_artist.tracks[1].id,
     data.spotify_search_track.by_artist.tracks[2].id,
+    data.spotify_search_track.by_artist.tracks[3].id,
+    data.spotify_search_track.by_artist.tracks[4].id,
+    data.spotify_search_track.rock_song.tracks[0].id,
+    data.spotify_search_track.pop_song.tracks[0].id
   ]
 }
