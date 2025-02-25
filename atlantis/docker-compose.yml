@@ -17,16 +17,5 @@ services:
       - --repo-allowlist=github.com/angatupyry/spotify-playlist-terraform
       - --write-git-creds
     restart: unless-stopped
-    networks:
-      - atlantis-net
- 
-  spotify-auth-proxy:
-    image: ghcr.io/conradludgate/spotify-auth-proxy
-    ports:
-      - "27228:27228"
-    networks:
-        - atlantis-net
-
-networks:
-  atlantis-net:
-    driver: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
