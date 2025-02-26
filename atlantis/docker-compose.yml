@@ -5,7 +5,7 @@ services:
     build: .
     container_name: atlantis
     networks:
-      - atlantis_atlantis_default
+      - atlantis_network
     ports:
       - "4141:4141"
     volumes: 
@@ -24,12 +24,15 @@ services:
     container_name: spotify-auth-proxy
     ports:
       - "27228:27228"
+    environment:
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
     env_file:
       - .env  
     restart: unless-stopped
     networks:
-      - atlantis_atlantis_default
+      - atlantis_network
 
 networks:
-  atlantis_atlantis_default:
+  atlantis_network:
     driver: bridge
