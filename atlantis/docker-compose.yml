@@ -8,6 +8,8 @@ services:
       - atlantis_network
     ports:
       - "4141:4141"
+    env_file:
+      - .env
     volumes: 
       - /etc/atlantis/github-app-key.pem:/etc/atlantis/github-app-key.pem
       - ./terraform:/terraform
@@ -15,7 +17,7 @@ services:
     command: 
       - server 
       - --gh-app-key-file=/etc/atlantis/github-app-key.pem
-      - --gh-app-id=1157716
+      - --gh-app-id=${GH_APP_ID}
       - --repo-allowlist=github.com/angatupyry/spotify-playlist-terraform
       - --write-git-creds
     
@@ -24,9 +26,6 @@ services:
     container_name: spotify-auth-proxy
     ports:
       - "27228:27228"
-    environment:
-      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
-      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
     env_file:
       - .env  
     restart: unless-stopped
