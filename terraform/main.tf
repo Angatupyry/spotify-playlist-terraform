@@ -29,7 +29,7 @@ data "spotify_search_track" "pop_song" {
 }
 
 resource "spotify_playlist" "playlist" {
-  name        = "My Custom Terraform Playlist"
+  name        = "My Terraform Playlist"
   description = "This playlist was created by Terraform"
   public      = true
 
