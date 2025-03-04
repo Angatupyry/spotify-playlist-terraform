@@ -25,19 +25,13 @@ jobs:
         with:
           terraform_version: 1.10.5
 
-      - name: Setup Guardian
-        run: |
-          curl -L https://github.com/hashicorp/guardian/releases/latest/download/guardian-linux-amd64 -o guardian
-          chmod +x guardian
-          sudo mv guardian /usr/local/bin/
-
       - name: Initialize Terraform
         run: terraform init
 
       - name: Run Guardian Checks
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: guardian check
+        uses: abcxyz/guardian-action@v1
+        with:
+          guardian-config: guardian.yaml
 
       - name: Plan Terraform
         run: terraform plan -out=tfplan
