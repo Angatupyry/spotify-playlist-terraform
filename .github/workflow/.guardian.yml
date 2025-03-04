@@ -1,0 +1,43 @@
+name: Guardian Terraform Checks
+
+on:
+  pull_request:
+    branches:
+      - guardian
+  push:
+    branches:
+      - guardian
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Run Guardian Checks
+        uses: abcxyz/guardian-action@v1
+        with:
+          guardian-config: guardian.yaml
+
+      - name: Plan Terraform
+        run: terraform plan -out=tfplan
+
+      - name: Apply Terraform (on merge only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: terraform apply -auto-approve tfplan
