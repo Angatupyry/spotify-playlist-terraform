@@ -102,8 +102,8 @@ jobs:
 
       - name: Ensure Terraform detects changes
         run: |
-          git status
           cat ./terraform/main.tf
+          cd terraform
           terraform fmt -recursive
 
       - name: Set up Terraform
