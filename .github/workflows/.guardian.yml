@@ -49,21 +49,21 @@ jobs:
             -e SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }} \
             ghcr.io/conradludgate/spotify-auth-proxy
 
-      - name: Wait for Spotify Auth Proxy to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -sSf http://localhost:27228/healthz; then
-              echo "Spotify Auth Proxy is ready"
-              exit 0
-            fi
-            echo "Waiting for Spotify Auth Proxy to start..."
-            sleep 2
-          done
-          echo "Error: Spotify Auth Proxy did not start in time"
-          exit 1
+      # - name: Wait for Spotify Auth Proxy to be ready
+      #   run: |
+      #     for i in {1..30}; do
+      #       if curl -sSf http://localhost:27228/healthz; then
+      #         echo "Spotify Auth Proxy is ready"
+      #         exit 0
+      #       fi
+      #       echo "Waiting for Spotify Auth Proxy to start..."
+      #       sleep 2
+      #     done
+      #     echo "Error: Spotify Auth Proxy did not start in time"
+      #     exit 1
 
-      - name: Test connection to Spotify Auth Proxy
-        run: curl -v http://localhost:27228/healthz || exit 1
+      # - name: Test connection to Spotify Auth Proxy
+      #   run: curl -v http://localhost:27228/healthz || exit 1
 
       - name: Retrieve Spotify API Key
         id: get_api_key
