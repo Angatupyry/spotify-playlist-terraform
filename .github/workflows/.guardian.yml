@@ -30,7 +30,7 @@ jobs:
           terraform_version: 1.5.4
 
       - name: Setup Guardian
-        uses: abcxyz/pkg/.github/actions/setup-binary@main
+        uses: "abcxyz/pkg/.github/actions/setup-binary@90acbb7e25e72c3c7ae2c040244d8468f74f8d96"
         with:
           download_url: "https://github.com/abcxyz/guardian/releases/latest/download/guardian_linux_amd64.tar.gz"
           install_path: "${{ runner.temp }}/.guardian"
