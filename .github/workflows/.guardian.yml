@@ -29,6 +29,12 @@ jobs:
         with:
           terraform_version: 1.5.4
 
+      - name: Download and Install Guardian
+        run: |
+          mkdir -p $RUNNER_TEMP/.guardian
+          curl -L "https://github.com/abcxyz/guardian/releases/latest/download/guardian_linux_amd64.tar.gz" | tar -xz -C $RUNNER_TEMP/.guardian
+          echo "$RUNNER_TEMP/.guardian" >> $GITHUB_PATH
+
       # - name: Setup Guardian
       #   uses: "abcxyz/pkg/.github/actions/setup-binary@90acbb7e25e72c3c7ae2c040244d8468f74f8d96"
       #   with:
