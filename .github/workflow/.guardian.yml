@@ -1,43 +1,59 @@
-name: Guardian Terraform Checks
+name: "Guardian Terraform Plan"
 
 on:
   pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+      - "ready_for_review"
     branches:
-      - guardian
-  push:
-    branches:
-      - guardian
-
-permissions:
-  contents: read
-  pull-requests: write
-  id-token: write
+      - "main"
 
 jobs:
-  guardian:
+  plan:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.10.5
+          fetch-depth: 0
 
-      - name: Initialize Terraform
-        run: terraform init
-
-      - name: Run Guardian Checks
-        uses: abcxyz/guardian-action@v1
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
         with:
-          guardian-config: guardian.yaml
+          terraform_version: 1.5.4
 
-      - name: Plan Terraform
-        run: terraform plan -out=tfplan
+      - name: Setup Guardian
+        uses: abcxyz/pkg/.github/actions/setup-binary@main
+        with:
+          download_url: "https://github.com/abcxyz/guardian/releases/latest/download/guardian_linux_amd64.tar.gz"
+          install_path: "${{ runner.temp }}/.guardian"
+          binary_subpath: "guardian"
+          add_to_path: true
 
-      - name: Apply Terraform (on merge only)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Guardian Plan
+        id: guardian
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: terraform apply -auto-approve tfplan
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: |
+          guardian plan -dir="../terraform"
+
+      - name: Post Plan Comment
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ steps.guardian.outputs.plan_output }}', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\n\`\`\`diff\n${planOutput}\n\`\`\``
+            });
