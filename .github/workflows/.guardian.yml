@@ -24,6 +24,60 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify Docker installation
+        run: docker version
+
+      - name: Install Docker (if necessary)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+        if: failure()
+
+      - name: Start Spotify Auth Proxy in Docker
+        run: |
+          docker run -d --rm -p 27228:27228 --env-file ./.env ghcr.io/conradludgate/spotify-auth-proxy
+
+      - name: Wait for Spotify Auth Proxy to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -sSf http://localhost:27228/healthz; then
+              echo "Spotify Auth Proxy is ready"
+              exit 0
+            fi
+            echo "Waiting for Spotify Auth Proxy to start..."
+            sleep 2
+          done
+          echo "Error: Spotify Auth Proxy did not start in time"
+          exit 1
+
+      - name: Test connection to Spotify Auth Proxy
+        run: curl -v http://localhost:27228/healthz || exit 1
+
+      - name: Retrieve Spotify API Key
+        id: get_api_key
+        run: |
+          AUTH_URL=$(curl -sSf http://localhost:27228/auth-url)
+          echo "Open this URL and authenticate: $AUTH_URL"
+
+          for i in {1..60}; do
+            API_KEY=$(docker logs spotify-proxy 2>&1 | grep -oP 'api_key=\K\S+')
+            if [[ ! -z "$API_KEY" ]]; then
+              echo "::set-output name=spotify_api_key::$API_KEY"
+              echo "Spotify API Key retrieved"
+              break
+            fi
+            echo "Waiting for API key..."
+            sleep 2
+          done
+          if [[ -z "$API_KEY" ]]; then
+            echo "Error: API key not retrieved"
+            exit 1
+          fi
+
+      - name: Save API Key to terraform.tfvars
+        run: |
+          echo "spotify_api_key = \"${{ steps.get_api_key.outputs.spotify_api_key }}\"" > terraform.tfvars
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
