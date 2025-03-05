@@ -100,8 +100,11 @@ jobs:
         env:
           api_key: ${{ env.api_key }}
 
-      # - name: Debug terraform.tfvars
-      #   run: cat ./terraform/terraform.tfvars
+      - name: Ensure Terraform detects changes
+        run: |
+          git status
+          cat ./terraform/main.tf
+          terraform fmt -recursive
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
