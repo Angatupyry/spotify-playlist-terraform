@@ -95,10 +95,10 @@ jobs:
 
       - name: Save API Key to terraform.tfvars
         run: |
-          echo "spotify_api_key = \"$spotify_api_key\"" > ./terraform/terraform.tfvars
+          echo "api_key = \"$api_key\"" > ./terraform/main.tf
         shell: bash
         env:
-          spotify_api_key: ${{ env.spotify_api_key }}
+          api_key: ${{ env.api_key }}
 
       # - name: Debug terraform.tfvars
       #   run: cat ./terraform/terraform.tfvars
@@ -122,7 +122,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          cat ./terraform/terraform.tfvars
+          cat ./terraform/main.tf
           guardian plan -dir="./terraform"
 
       - name: Post Plan Comment
