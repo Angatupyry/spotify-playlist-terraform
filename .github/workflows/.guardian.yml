@@ -82,7 +82,7 @@ jobs:
             API_KEY=$(docker logs spotify-proxy 2>&1 | grep "APIKey:" | tail -n1 | awk '{print $2}')
             if [[ ! -z "$API_KEY" ]]; then
               echo "Spotify API Key retrieved: $API_KEY"
-              echo "spotify_api_key=$API_KEY" >> $GITHUB_ENV
+              echo "api_key=$API_KEY" >> $GITHUB_ENV
               break
             fi
             echo "Waiting for API key..."
