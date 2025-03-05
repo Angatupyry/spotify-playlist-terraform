@@ -29,12 +29,6 @@ jobs:
         with:
           terraform_version: 1.5.4
 
-      # - name: Download and Install Guardian
-      #   run: |
-      #     mkdir -p $RUNNER_TEMP/.guardian
-      #     curl -L "https://github.com/abcxyz/guardian/releases/latest/download/guardian_3.0.0-alpha2_linux_amd64.tar.gz" | tar -xz -C $RUNNER_TEMP/.guardian
-      #     echo "$RUNNER_TEMP/.guardian" >> $GITHUB_PATH
-
       - name: Setup Guardian
         uses: "abcxyz/pkg/.github/actions/setup-binary@main"
         with:
@@ -43,23 +37,23 @@ jobs:
           binary_subpath: "guardian"
           add_to_path: true
 
-      # - name: Guardian Plan
-      #   id: guardian
-      #   shell: bash
-      #   env:
-      #     GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      #   run: |
-      #     guardian plan -dir="../terraform"
+      - name: Guardian Plan
+        id: guardian
+        shell: bash
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        run: |
+          guardian plan -dir="./terraform"
 
-      # - name: Post Plan Comment
-      #   uses: actions/github-script@v5
-      #   with:
-      #     script: |
-      #       const fs = require('fs');
-      #       const planOutput = fs.readFileSync('${{ steps.guardian.outputs.plan_output }}', 'utf8');
-      #       github.rest.issues.createComment({
-      #         issue_number: context.issue.number,
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         body: `## Terraform Plan\n\n\`\`\`diff\n${planOutput}\n\`\`\``
-      #       });
+      - name: Post Plan Comment
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ steps.guardian.outputs.plan_output }}', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\n\`\`\`diff\n${planOutput}\n\`\`\``
+            });
