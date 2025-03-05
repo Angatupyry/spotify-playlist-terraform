@@ -96,7 +96,9 @@ jobs:
       - name: Save API Key to terraform.tfvars
         run: |
           echo "spotify_api_key = \"$env.spotify_api_key\"" > ./terraform/terraform.tfvars
-          cat ./terraform/terraform.tfvars
+
+      - name: Debug terraform.tfvars
+        run: cat ./terraform/terraform.tfvars
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
