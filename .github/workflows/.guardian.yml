@@ -71,16 +71,8 @@ jobs:
           for i in {1..10}; do
             AUTH_URL=$(docker logs spotify-proxy 2>&1 | grep "Auth URL:" | tail -n1 | awk '{print $3}')
             if [[ ! -z "$AUTH_URL" ]]; then
-              echo "Open this URL and authenticate: $AUTH_URL"
-              if command -v xdg-open &>/dev/null; then
-                xdg-open "$AUTH_URL"
-              elif command -v open &>/dev/null; then
-                open "$AUTH_URL"
-              elif command -v start &>/dev/null; then
-                start "$AUTH_URL"
-              else
-                echo "$AUTH_URL"
-              fi
+              echo "🔗 Authenticating automatically: $AUTH_URL"
+              curl -s "$AUTH_URL" > /dev/null
               break
             fi
             sleep 2
