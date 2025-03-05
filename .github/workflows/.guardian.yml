@@ -100,16 +100,16 @@ jobs:
         env:
           api_key: ${{ env.api_key }}
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.5.4
+
       - name: Ensure Terraform detects changes
         run: |
           cat ./terraform/main.tf
           cd terraform
           terraform fmt -recursive
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.5.4
 
       - name: Setup Guardian
         uses: "abcxyz/pkg/.github/actions/setup-binary@main"
