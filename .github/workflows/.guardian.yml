@@ -93,9 +93,9 @@ jobs:
             exit 1
           fi
 
-      - name: Save API Key to terraform.tfvars
+      - name: Replace API Key in main.tf
         run: |
-          echo "api_key = \"$api_key\"" > ./terraform/main.tf
+          sed -i 's/api_key = .*/api_key = "\"${api_key}\""/' ./terraform/main.tf
         shell: bash
         env:
           api_key: ${{ env.api_key }}
