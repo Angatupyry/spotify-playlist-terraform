@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Spotify Auth Proxy
         run: |
-          docker run -d --rm -p 27228:27228 \
+          docker run -d --rm --name spotify-proxy -p 27228:27228 \
             -e SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }} \
             -e SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }} \
             ghcr.io/conradludgate/spotify-auth-proxy
@@ -68,14 +68,29 @@ jobs:
       - name: Retrieve Spotify API Key
         id: get_api_key
         run: |
-          AUTH_URL=$(curl -sSf http://localhost:27228/auth-url)
-          echo "Open this URL and authenticate: $AUTH_URL"
+          for i in {1..10}; do
+            AUTH_URL=$(docker logs spotify-proxy 2>&1 | grep "Auth URL:" | tail -n1 | awk '{print $3}')
+            if [[ ! -z "$AUTH_URL" ]]; then
+              echo "Open this URL and authenticate: $AUTH_URL"
+              if command -v xdg-open &>/dev/null; then
+                xdg-open "$AUTH_URL"
+              elif command -v open &>/dev/null; then
+                open "$AUTH_URL"
+              elif command -v start &>/dev/null; then
+                start "$AUTH_URL"
+              else
+                echo "$AUTH_URL"
+              fi
+              break
+            fi
+            sleep 2
+          done
 
           for i in {1..60}; do
-            API_KEY=$(docker logs spotify-proxy 2>&1 | grep -oP 'api_key=\K\S+')
+            API_KEY=$(docker logs spotify-proxy 2>&1 | grep "APIKey:" | tail -n1 | awk '{print $2}')
             if [[ ! -z "$API_KEY" ]]; then
-              echo "::set-output name=spotify_api_key::$API_KEY"
-              echo "Spotify API Key retrieved"
+              echo "Spotify API Key retrieved: $API_KEY"
+              echo "spotify_api_key=$API_KEY" >> $GITHUB_ENV
               break
             fi
             echo "Waiting for API key..."
@@ -88,7 +103,7 @@ jobs:
 
       - name: Save API Key to terraform.tfvars
         run: |
-          echo "spotify_api_key = \"${{ steps.get_api_key.outputs.spotify_api_key }}\"" > terraform.tfvars
+          echo "spotify_api_key = \"${{ env.spotify_api_key }}\"" > terraform.tfvars
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
