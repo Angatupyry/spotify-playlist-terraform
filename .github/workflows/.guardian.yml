@@ -95,7 +95,7 @@ jobs:
 
       - name: Replace API Key in main.tf
         run: |
-          sed -i 's/api_key = .*/api_key = "\"${api_key}\""/' ./terraform/main.tf
+          sed -i 's|api_key = .*|api_key = "${api_key}"|' ./terraform/main.tf
         shell: bash
         env:
           api_key: ${{ env.api_key }}
