@@ -68,6 +68,10 @@ jobs:
             exit 1
           fi
 
+      - name: Debug Terraform Environment
+        run: |
+          env | grep TF_VAR
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
