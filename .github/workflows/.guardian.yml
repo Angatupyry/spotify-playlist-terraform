@@ -71,7 +71,14 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.5.4
+          terraform_version: 1.11.1
+
+      - name: Debug TF_VAR_spotify_api_key
+        run: |
+          echo "Checking TF_VAR_spotify_api_key:"
+          echo "TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}"
+        env:
+          TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
 
       - name: Ensure Terraform detects changes
         run: |
