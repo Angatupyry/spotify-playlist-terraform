@@ -1,0 +1,133 @@
+name: "Guardian Terraform Plan"
+
+on:
+  pull_request:
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+      - "ready_for_review"
+    branches:
+      - "main"
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Docker installation
+        run: docker version
+
+      - name: Install Docker (if necessary)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+        if: failure()
+
+      - name: Run Spotify Auth Proxy
+        run: |
+          docker run -d --rm --name spotify-proxy -p 27228:27228 \
+            -e SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }} \
+            -e SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }} \
+            ghcr.io/conradludgate/spotify-auth-proxy
+
+      - name: Retrieve Spotify API Key
+        id: get_api_key
+        run: |
+          for i in {1..10}; do
+            AUTH_URL=$(docker logs spotify-proxy 2>&1 | grep "Auth URL:" | tail -n1 | awk '{print $3}')
+            if [[ ! -z "$AUTH_URL" ]]; then
+              echo "🔗 Authenticating automatically: $AUTH_URL"
+              curl -s "$AUTH_URL" > /dev/null
+              break
+            fi
+            sleep 2
+          done
+
+          for i in {1..60}; do
+            API_KEY=$(docker logs spotify-proxy 2>&1 | grep "APIKey:" | tail -n1 | awk '{print $2}')
+            if [[ ! -z "$API_KEY" ]]; then
+              echo "Spotify API Key retrieved: $API_KEY"
+              echo "TF_VAR_spotify_api_key=$API_KEY" >> $GITHUB_ENV
+              break
+            fi
+            echo "Waiting for API key..."
+            sleep 2
+          done
+          if [[ -z "$API_KEY" ]]; then
+            echo "Error: API key not retrieved"
+            exit 1
+          fi
+
+      - name: Debug Terraform Environment
+        run: |
+          env | grep TF_VAR
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.11.1
+
+      - name: Debug TF_VAR_spotify_api_key
+        run: |
+          echo "Checking TF_VAR_spotify_api_key:"
+          echo "TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}"
+        env:
+          TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
+
+      - name: Ensure Terraform detects changes
+        run: |
+          cat ./terraform/main.tf
+          cd terraform
+          terraform fmt -recursive
+
+      # - name: Terraform Plan (Manual)
+      #   run: |
+      #     cd terraform
+      #     terraform init
+      #     terraform plan
+      #   env:
+      #     TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
+
+      - name: Setup Guardian
+        uses: "abcxyz/pkg/.github/actions/setup-binary@main"
+        with:
+          download_url: "https://github.com/abcxyz/guardian/releases/latest/download/guardian_3.0.0-alpha2_linux_amd64.tar.gz"
+          install_path: "${{ runner.temp }}/.guardian"
+          binary_subpath: "guardian"
+          add_to_path: true
+
+      - name: Guardian Plan
+        id: guardian
+        shell: bash
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
+        run: |
+          echo "TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}"
+          export TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}
+          echo "TF_VAR_spotify_api_key set to: $TF_VAR_spotify_api_key"
+          cat ./terraform/main.tf
+          guardian plan -dir="./terraform"
+
+      - name: Post Plan Comment
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ steps.guardian.outputs.plan_output }}', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan\n\n\`\`\`diff\n${planOutput}\n\`\`\``
+            });

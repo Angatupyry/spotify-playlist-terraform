@@ -9,7 +9,6 @@ terraform {
 
 provider "spotify" {
   api_key = var.spotify_api_key
-  auth_server = "http://spotify-auth-proxy:27228"
 }
 
 data "spotify_search_track" "by_artist" {
@@ -29,7 +28,7 @@ data "spotify_search_track" "pop_song" {
 }
 
 resource "spotify_playlist" "playlist" {
-  name        = "My Custom Terraform Playlist"
+  name        = "My Terraform Playlist"
   description = "This playlist was created by Terraform"
   public      = true
 
