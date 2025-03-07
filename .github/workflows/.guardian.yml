@@ -90,13 +90,13 @@ jobs:
           cd terraform
           terraform fmt -recursive
 
-      - name: Terraform Plan (Manual)
-        run: |
-          cd terraform
-          terraform init
-          terraform plan
-        env:
-          TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
+      # - name: Terraform Plan (Manual)
+      #   run: |
+      #     cd terraform
+      #     terraform init
+      #     terraform plan
+      #   env:
+      #     TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
 
       - name: Setup Guardian
         uses: "abcxyz/pkg/.github/actions/setup-binary@main"
@@ -113,6 +113,9 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
         run: |
+          echo "TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}"
+          export TF_VAR_spotify_api_key=${TF_VAR_spotify_api_key}
+          echo "TF_VAR_spotify_api_key set to: $TF_VAR_spotify_api_key"
           cat ./terraform/main.tf
           guardian plan -dir="./terraform"
 
