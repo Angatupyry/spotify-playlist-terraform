@@ -33,37 +33,12 @@ jobs:
           sudo apt-get install -y docker.io
         if: failure()
 
-      # - name: Create .env file
-      #   run: |
-      #     echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
-      #     echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
-
-      # - name: Start Spotify Auth Proxy in Docker
-      #   run: |
-      #     docker run -d --rm -p 27228:27228 --env-file ./.env ghcr.io/conradludgate/spotify-auth-proxy
-
       - name: Run Spotify Auth Proxy
         run: |
           docker run -d --rm --name spotify-proxy -p 27228:27228 \
             -e SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }} \
             -e SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }} \
             ghcr.io/conradludgate/spotify-auth-proxy
-
-      # - name: Wait for Spotify Auth Proxy to be ready
-      #   run: |
-      #     for i in {1..30}; do
-      #       if curl -sSf http://localhost:27228/healthz; then
-      #         echo "Spotify Auth Proxy is ready"
-      #         exit 0
-      #       fi
-      #       echo "Waiting for Spotify Auth Proxy to start..."
-      #       sleep 2
-      #     done
-      #     echo "Error: Spotify Auth Proxy did not start in time"
-      #     exit 1
-
-      # - name: Test connection to Spotify Auth Proxy
-      #   run: curl -v http://localhost:27228/healthz || exit 1
 
       - name: Retrieve Spotify API Key
         id: get_api_key
@@ -82,7 +57,7 @@ jobs:
             API_KEY=$(docker logs spotify-proxy 2>&1 | grep "APIKey:" | tail -n1 | awk '{print $2}')
             if [[ ! -z "$API_KEY" ]]; then
               echo "Spotify API Key retrieved: $API_KEY"
-              echo "api_key=$API_KEY" >> $GITHUB_ENV
+              echo "TF_VAR_spotify_api_key=$API_KEY" >> $GITHUB_ENV
               break
             fi
             echo "Waiting for API key..."
@@ -92,13 +67,6 @@ jobs:
             echo "Error: API key not retrieved"
             exit 1
           fi
-
-      - name: Replace API Key in main.tf
-        run: |
-          sed -i "s|api_key = .*|api_key = \"${api_key}\"|" ./terraform/main.tf
-        shell: bash
-        env:
-          api_key: ${{ env.api_key }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -124,6 +92,7 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          TF_VAR_spotify_api_key: ${{ env.TF_VAR_spotify_api_key }}
         run: |
           cat ./terraform/main.tf
           guardian plan -dir="./terraform"
